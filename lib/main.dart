@@ -46,6 +46,62 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 }
 
+class LoginScreen extends StatefulWidget {
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  @override
+  Widget build(BuildContext context) {
+    var deviceData = MediaQuery.of(context);
+    var screenSize = deviceData.size;
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+
+          children: <Widget>[
+            ReusableTopRow('Login'),
+            ReusableEmailRow(screenSize: screenSize),
+            ReusablePasswordRow(screenSize: screenSize),
+            ReusableButton(screenSize,'Login',Color(0xFF0096FB)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class RegisterScreen extends StatefulWidget {
+  @override
+  _RegisterScreenState createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  @override
+  Widget build(BuildContext context) {
+    var deviceData = MediaQuery.of(context);
+    var screenSize = deviceData.size;
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+
+          children: <Widget>[
+            ReusableTopRow('Register'),
+            ReusableEmailRow(screenSize: screenSize),
+            ReusablePasswordRow(screenSize: screenSize),
+            ReusableButton(screenSize,'Register',Color(0xFFAB00B6)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class ReusableButton extends StatelessWidget {
   final Color color;
   final Size screenSize;
@@ -78,76 +134,82 @@ class ReusableButton extends StatelessWidget {
   }
 }
 
+class ReusableTopRow extends StatelessWidget {
+  String title;
+  ReusableTopRow(this.title);
 
-
-class LoginScreen extends StatefulWidget {
-  @override
-  _LoginScreenState createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
-    var deviceData = MediaQuery.of(context);
-    var screenSize = deviceData.size;
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Hero(
-                  tag: 'avatar',
-                  child: CircleAvatar(
-                    radius: 40,
-                    backgroundColor: Colors.blue,
-                  ),
-                ),
-                Text('Login',
-                    style: TextStyle(
-                        color: Colors.blue, fontSize: 45, letterSpacing: 1.5)),
-              ],
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(10.0,0.0,10.0,0.0),
-              child: TextField(
-                style: TextStyle(fontSize: 15.0),
-                decoration: InputDecoration(
-                    labelText: "Phone or Email",
-                    border: OutlineInputBorder()
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(10.0,0.0,10.0,0.0),
-              child: TextField(
-                style: TextStyle(fontSize: 15.0),
-                obscureText: true,
-                decoration: InputDecoration(
-                    labelText: "Your Password",
-                    border: OutlineInputBorder()
-                ),
-              ),
-            ),
-            ReusableButton(screenSize,'Login',Color(0xFF0096FB)),
-          ],
+    return Row(mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Hero(
+          tag: 'avatar',
+          child: CircleAvatar(
+            radius: 40,
+            backgroundColor: Colors.blue,
+          ),
         ),
-      ),
+        SizedBox(width: 20,),
+        Text(title,
+            style: TextStyle(
+                color: Colors.blue, fontSize: 45, letterSpacing: 1.5)),
+        SizedBox(width: 40,),
+      ],
     );
   }
 }
 
-class RegisterScreen extends StatefulWidget {
-  @override
-  _RegisterScreenState createState() => _RegisterScreenState();
-}
+class ReusableEmailRow extends StatelessWidget {
+  const ReusableEmailRow({
+    Key key,
+    @required this.screenSize,
+  }) : super(key: key);
 
-class _RegisterScreenState extends State<RegisterScreen> {
+  final Size screenSize;
+
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: <Widget>[
+        Icon(Icons.email),
+        Container(width: screenSize.width * 0.7,
+          child: TextField(
+            style: TextStyle(fontSize: 15.0),
+            decoration: InputDecoration(
+                labelText: "elonmusk@spacex.com",
+                border: OutlineInputBorder()
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ReusablePasswordRow extends StatelessWidget {
+  const ReusablePasswordRow({
+    Key key,
+    @required this.screenSize,
+  }) : super(key: key);
+
+  final Size screenSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: <Widget>[
+        Icon(Icons.lock),
+        Container(width: screenSize.width * 0.7,
+          child: TextField(
+            style: TextStyle(fontSize: 15.0),
+            obscureText: true,
+            decoration: InputDecoration(
+                labelText: "Your Password",
+                border: OutlineInputBorder()
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
