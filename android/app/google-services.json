@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "675346629099",
+    "firebase_url": "https://mvrchatapp.firebaseio.com",
+    "project_id": "mvrchatapp",
+    "storage_bucket": "mvrchatapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:675346629099:android:49d436e142b5b3aa9519ae",
+        "android_client_info": {
+          "package_name": "com.mclarencollege.chat_app_starter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "675346629099-rd8cl407vpupe7p6acann1k1kh9l2qcf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDeFBkM7iX99dMdjXuM_bX-qbuFdeGQCQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "675346629099-rd8cl407vpupe7p6acann1k1kh9l2qcf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
