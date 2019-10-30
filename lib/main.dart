@@ -2,6 +2,7 @@ import 'package:chat_app_starter/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'chat_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() {
   runApp(

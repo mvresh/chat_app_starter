@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatScreen extends StatefulWidget {
   @override
@@ -9,6 +10,39 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   TextEditingController messageController = TextEditingController();
+  String email;
+  List<Widget> chatList = List<Widget>();
+
+  @override
+  void initState() {
+    messageController.addListener(() {
+      setState(() {});
+    });
+    // TODO: implement initState
+    super.initState();
+  }
+
+  void getMessages()async{
+    chatList = [];
+    QuerySnapshot messages = await Firestore.instance.collection('messages').getDocuments();
+    email = await FirebaseAuth.instance.currentUser().then((user) => user.email);
+    //print(email);
+    for (DocumentSnapshot message in messages.documents) {
+      String text = message['text'];
+      String sender = message['sender'];
+      chatList.add(MessageBubble(message: text,isSender: sender == email,sender: sender,));
+    }
+    setState(() {
+
+    });
+    print(chatList);
+
+//    print(messages.documents.length);
+//    messages.documents.forEach((message) => print(message.data));
+
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,7 +57,7 @@ class _ChatScreenState extends State<ChatScreen> {
               color: Colors.purple,
               onPressed: () {
                 FirebaseAuth.instance.signOut();
-                Navigator.pushNamed(context, '/');
+                Navigator.pushReplacementNamed(context, '/');
               },
               child: Text(
                 'Logout',
@@ -34,34 +68,97 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           FlatButton(
               color: Colors.blue,
-              onPressed: () {}, child: Text('Download', style: TextStyle(color: Colors.white))),
+              onPressed:
+                getMessages
+              , child: Text('Download', style: TextStyle(color: Colors.white))),
           SizedBox(
             width: 5,
           ),
         ],
       ),
-      body: Row(
+      body: Column(
         children: <Widget>[
-          Flexible(
-            flex: 9,
-            child: TextField(
-              controller: messageController,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.grey[200],
-                border: InputBorder.none,
-                hintText: 'Send a message',
+          Expanded(child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment:CrossAxisAlignment.stretch,children: chatList,),
+          )),
+          Row(
+            children: <Widget>[
+              Flexible(
+                flex: 9,
+                child: TextField(
+                  controller: messageController,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: InputBorder.none,
+                    hintText: 'Send a message',
+                  ),
+                ),
+              ),
+              Flexible(
+                flex: 2,
+                child: FlatButton(
+                  color: messageController.text.isEmpty ? Colors.grey : Colors.blue,
+                  onPressed: messageController.text.isEmpty? (){} : sendMessage,
+                  child: Text('Send',style: TextStyle(color: Colors.white),),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+  }
+
+  void sendMessage() async{
+    email = await FirebaseAuth.instance.currentUser().then((user) => user.email);
+    await Firestore.instance.collection('messages').add({'sender' : email,'text' : messageController.text});
+    messageController.clear();
+            }
+}
+
+class MessageBubble extends StatelessWidget {
+  String message;
+  String sender;
+  bool isSender;
+
+  MessageBubble({this.message, this.isSender,this.sender});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: isSender ?   CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            sender,
+            style: TextStyle(color: Colors.grey),
+          ),
+          Container(
+            margin: const EdgeInsets.all(3.0),
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: isSender ?  Colors.blueAccent.shade100:  Colors.purple,
+              borderRadius: isSender
+                  ? BorderRadius.only(
+                topRight: Radius.circular(5.0),
+                bottomLeft: Radius.circular(10.0),
+                bottomRight: Radius.circular(5.0),
+              )
+                  : BorderRadius.only(
+                topLeft: Radius.circular(5.0),
+                bottomLeft: Radius.circular(5.0),
+                bottomRight: Radius.circular(10.0),
               ),
             ),
-          ),
-          Flexible(
-            flex: 2,
-            child: FlatButton(
-              color: Colors.blue,
-              onPressed: () {},
-              child: Text('Send',style: TextStyle(color: Colors.white),),
+            child: Padding(
+              padding: EdgeInsets.only(right: 48.0),
+              child: Text(message,style: TextStyle(fontSize: 20,color: Colors.white),),
             ),
-          ),
+          ),SizedBox(height: 10,)
         ],
       ),
     );
