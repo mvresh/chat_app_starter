@@ -11,6 +11,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String email;
   String password;
   bool loading = false;
+  bool wrongCredentials = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,11 +101,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         setState(() {
                           loading = true;
                         });
-                        AuthResult result = await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
-                        //print(result.user);
-                        Navigator.pushNamed(context, '/chat');
+                        try {
+                          AuthResult result = await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
+                          //print(result.user);
+                          Navigator.pushNamed(context, '/chatroom');
+                        } on Exception catch (e) {
+                          wrongCredentials = true;
+                          loading = false;
+                          setState(() {
+
+                          });
+                          // TODO
+                        }
                       },
                     ),
+                    SizedBox(height: 5,),
+                    Center(child: Text(!wrongCredentials?'':'Please check your email and password')),
                   ],
                 ),
               )

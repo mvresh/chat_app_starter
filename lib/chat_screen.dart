@@ -4,17 +4,21 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatScreen extends StatefulWidget {
+  String id;
+  ChatScreen({this.id});
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+
   TextEditingController messageController = TextEditingController();
   String email;
   List<Widget> chatList = List<Widget>();
 
   @override
   void initState() {
+    getMessageStream();
     messageController.addListener(() {
       setState(() {});
     });
@@ -22,55 +26,67 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
   }
 
-  void getMessages()async{
+  void getMessages() async {
     chatList = [];
-    QuerySnapshot messages = await Firestore.instance.collection('messages').getDocuments();
-    email = await FirebaseAuth.instance.currentUser().then((user) => user.email);
+    QuerySnapshot messages =
+        await Firestore.instance.collection('messages').getDocuments();
+    email =
+        await FirebaseAuth.instance.currentUser().then((user) => user.email);
     //print(email);
     for (DocumentSnapshot message in messages.documents) {
       String text = message['text'];
       String sender = message['sender'];
-      chatList.add(MessageBubble(message: text,isSender: sender == email,sender: sender,));
+      chatList.add(MessageBubble(
+        message: text,
+        isSender: sender == email,
+        sender: sender,
+      ));
     }
-    setState(() {
-
-    });
+    setState(() {});
     print(chatList);
 
 //    print(messages.documents.length);
 //    messages.documents.forEach((message) => print(message.data));
+  }
 
-
+  void getMessageStream() async {
+    email =
+        await FirebaseAuth.instance.currentUser().then((user) => user.email);
+    await for (var snapshot
+        in Firestore.instance.collection('messages').snapshots()) {
+      chatList.clear();
+      for (var message in snapshot.documents) {
+        String text = message['text'];
+        String sender = message['sender'];
+        chatList.add(MessageBubble(
+          message: text,
+          isSender: sender == email,
+          sender: sender,
+        ));
+      }
+      setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blue,
         title: Text(
           'CHAT',
-          style: TextStyle(color: Colors.blue, fontSize: 25),
+          style: TextStyle(color: Colors.white, fontSize: 25),
         ),
         actions: <Widget>[
           FlatButton(
-              color: Colors.purple,
               onPressed: () {
                 FirebaseAuth.instance.signOut();
                 Navigator.pushReplacementNamed(context, '/');
               },
-              child: Text(
-                'Logout',
-                style: TextStyle(color: Colors.white),
-              )),
+              child: Icon(Icons.power_settings_new,color: Colors.white,)),
           SizedBox(
             width: 5,
           ),
-          FlatButton(
-              color: Colors.blue,
-              onPressed:
-                getMessages
-              , child: Text('Download', style: TextStyle(color: Colors.white))),
           SizedBox(
             width: 5,
           ),
@@ -78,45 +94,77 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: <Widget>[
-          Expanded(child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment:CrossAxisAlignment.stretch,children: chatList,),
+          Expanded(
+              child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      StreamBuilder<QuerySnapshot>(
+                        stream: Firestore.instance.collection('chatroom').document(widget.id).collection('messages').orderBy('time').snapshots(),
+                        builder: (context,snapshot){
+                          if(!snapshot.hasData){
+                            return Center(child: CircularProgressIndicator(),);
+                          }
+                          else {
+                            return ListView.builder(itemBuilder: (context,index){
+                              return MessageBubble(
+                                message: snapshot.data.documents[index].data['text'],
+                                sender: snapshot.data.documents[index].data['sender'],
+                                isSender: snapshot.data.documents[index].data['sender'] == email,
+                              );
+                            },itemCount: snapshot.data.documents.length,shrinkWrap: true,);
+                          }
+                        },
+                      )
+                    ],
+            ),
           )),
-          Row(
-            children: <Widget>[
-              Flexible(
-                flex: 9,
-                child: TextField(
-                  controller: messageController,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                    border: InputBorder.none,
-                    hintText: 'Send a message',
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: <Widget>[
+                Flexible(
+                  flex: 9,
+                  child: TextField(
+                    controller: messageController,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      border: InputBorder.none,
+                      hintText: 'Send a message',
+                    ),
                   ),
                 ),
-              ),
-              Flexible(
-                flex: 2,
-                child: FlatButton(
-                  color: messageController.text.isEmpty ? Colors.grey : Colors.blue,
-                  onPressed: messageController.text.isEmpty? (){} : sendMessage,
-                  child: Text('Send',style: TextStyle(color: Colors.white),),
+                Flexible(
+                  flex: 1,
+                  child: IconButton(
+                    color: messageController.text.isEmpty
+                        ? Colors.grey
+                        : Colors.blue,
+                    icon: Icon(Icons.send),
+                      onPressed: messageController.text.isEmpty
+                          ? () {}
+                          : () {
+                        sendMessage();
+                      }
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     );
-
   }
 
-  void sendMessage() async{
-    email = await FirebaseAuth.instance.currentUser().then((user) => user.email);
-    await Firestore.instance.collection('messages').add({'sender' : email,'text' : messageController.text});
+  void sendMessage() async {
+    email =
+        await FirebaseAuth.instance.currentUser().then((user) => user.email);
+    await Firestore.instance.collection('chatroom').document(widget.id)
+        .collection('messages')
+        .add({'sender': email, 'text': messageController.text,'time': DateTime.now()});
     messageController.clear();
-            }
+  }
 }
 
 class MessageBubble extends StatelessWidget {
@@ -124,14 +172,15 @@ class MessageBubble extends StatelessWidget {
   String sender;
   bool isSender;
 
-  MessageBubble({this.message, this.isSender,this.sender});
+  MessageBubble({this.message, this.isSender, this.sender});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
-        crossAxisAlignment: isSender ?   CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment:
+            isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: <Widget>[
           Text(
             sender,
@@ -141,24 +190,30 @@ class MessageBubble extends StatelessWidget {
             margin: const EdgeInsets.all(3.0),
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
-              color: isSender ?  Colors.blueAccent.shade100:  Colors.purple,
+              color: isSender ? Colors.blueAccent.shade100 : Colors.purple,
               borderRadius: isSender
                   ? BorderRadius.only(
-                topRight: Radius.circular(5.0),
-                bottomLeft: Radius.circular(10.0),
-                bottomRight: Radius.circular(5.0),
-              )
+                      topRight: Radius.circular(5.0),
+                      bottomLeft: Radius.circular(10.0),
+                      bottomRight: Radius.circular(5.0),
+                    )
                   : BorderRadius.only(
-                topLeft: Radius.circular(5.0),
-                bottomLeft: Radius.circular(5.0),
-                bottomRight: Radius.circular(10.0),
-              ),
+                      topLeft: Radius.circular(5.0),
+                      bottomLeft: Radius.circular(5.0),
+                      bottomRight: Radius.circular(10.0),
+                    ),
             ),
             child: Padding(
               padding: EdgeInsets.only(right: 48.0),
-              child: Text(message,style: TextStyle(fontSize: 20,color: Colors.white),),
+              child: Text(
+                message,
+                style: TextStyle(fontSize: 20, color: Colors.white),
+              ),
             ),
-          ),SizedBox(height: 10,)
+          ),
+          SizedBox(
+            height: 10,
+          )
         ],
       ),
     );
