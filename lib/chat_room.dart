@@ -1,5 +1,6 @@
 import 'package:chat_app_starter/chat_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
@@ -13,7 +14,7 @@ CollectionReference mainCollection = Firestore.instance.collection('chatroom');
 class _ChatRoomState extends State<ChatRoom> {
   void newChatRoom() async {
     int id = Random().nextInt(300);
-    await mainCollection.document(id.toString()).setData({});
+    await mainCollection.document(id.toString()).setData({'Name':name});
     print('clicked');
     setState(() {});
   }
@@ -22,11 +23,38 @@ class _ChatRoomState extends State<ChatRoom> {
 //    await Firestore.instance.collection('chatroom').getDocuments();
 //
 //  }
-
+  TextEditingController nameTextController = TextEditingController();
+  String name;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+  }
+  newChatRoomDialog(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Chat Room Name'),
+            content: TextField(
+              onChanged: (newValue){
+                name = newValue;
+              },
+              controller: nameTextController,
+              decoration: InputDecoration(hintText: "Enter"),
+            ),
+            actions: <Widget>[
+               FlatButton(
+                child: new Text('CREATE'),
+                onPressed: (){
+                  newChatRoom();
+                  nameTextController.clear();
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          );
+        });
   }
 
   @override
@@ -39,7 +67,7 @@ class _ChatRoomState extends State<ChatRoom> {
           child: Column(
             children: <Widget>[
               RaisedButton(
-                onPressed: newChatRoom,
+                onPressed: () => newChatRoomDialog(context),
                 padding: EdgeInsets.all(16),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12.0))),
@@ -52,7 +80,7 @@ class _ChatRoomState extends State<ChatRoom> {
               SizedBox(
                 height: 20,
               ),
-              Expanded(
+              Flexible(
                 child: SingleChildScrollView(
                   child: StreamBuilder<QuerySnapshot>(
                     stream: Firestore.instance.collection('chatroom').snapshots(),
@@ -64,25 +92,69 @@ class _ChatRoomState extends State<ChatRoom> {
                           itemBuilder: (context, index) {
                             return Padding(
                               padding: const EdgeInsets.all(12.0),
-                              child: RaisedButton(
-                                onPressed: () async {
-                                  await mainCollection
-                                      .document(
-                                          '${snapshot.data.documents[index].documentID}')
-                                      .collection('messages')
-                                      .add({'timestamp': DateTime.now()});
-                                  Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => ChatScreen(id: snapshot.data.documents[index].documentID,)));
-                                },
-                                padding: EdgeInsets.all(16),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(4.0))),
-                                child: Text(
-                                  snapshot.data.documents[index].documentID,
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 21),
+                              child: Card(
+                                elevation: 10,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        textBaseline: TextBaseline.alphabetic,
+                                        children: <Widget>[
+                                          Text(
+                                            snapshot.data.documents[index].data['Name'],
+                                            style: TextStyle(
+                                                color: Colors.blue, fontSize: 21),
+                                          ),
+                                          StreamBuilder<QuerySnapshot>(
+                                            stream: mainCollection
+                                                .document(
+                                                '${snapshot.data.documents[index].documentID}')
+                                                .collection('messages').snapshots(),
+                                            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                              print('snapshot ${snapshot.connectionState}');
+                                              switch (snapshot.connectionState) {
+                                                case ConnectionState.waiting: return Text('Awaiting number of messages...');
+                                                default:
+                                                  if (snapshot.hasError)
+                                                    return Text('Error: ${snapshot.error}');
+                                                  else
+                                                    return Text(snapshot.data.documents.length.toString());
+                                              }
+                                            },
+                                          ),
+//                                          Text(mainCollection
+//                                              .document(
+//                                              '${snapshot.data.documents[index].documentID}')
+//                                              .collection('messages').snapshots().length.toString(),style: TextStyle(
+//                                              color: Colors.purpleAccent, fontSize: 10)),
+                                        ],
+                                      ),
+                                    ),
+                                    RaisedButton(
+                                      onPressed: () async {
+                                        await mainCollection
+                                            .document(
+                                                '${snapshot.data.documents[index].documentID}')
+                                            .collection('messages')
+                                            .add({'timestamp': DateTime.now()});
+                                        Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => ChatScreen(id: snapshot.data.documents[index].documentID,)));
+                                      },
+                                      padding: EdgeInsets.all(16),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.all(Radius.circular(4.0))),
+                                      child: Text(
+                                        'Join',
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 21),
+                                      ),
+                                      color: Colors.purple,
+                                    ),
+                                  ],
                                 ),
-                                color: Colors.purple,
                               ),
                             );
                           },
@@ -100,5 +172,11 @@ class _ChatRoomState extends State<ChatRoom> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    nameTextController.dispose();
+    super.dispose();
   }
 }
