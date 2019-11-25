@@ -11,7 +11,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-
+  DocumentSnapshot title;
+  String titleString;
   TextEditingController messageController = TextEditingController();
   String email;
   List<Widget> chatList = List<Widget>();
@@ -50,6 +51,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void getMessageStream() async {
+    title = await Firestore.instance.collection('chatroom').document('${widget.id}').get();
+    titleString = title.data['Name'].toString();
     email =
         await FirebaseAuth.instance.currentUser().then((user) => user.email);
     await for (var snapshot
@@ -71,11 +74,15 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFF202020),
       appBar: AppBar(
-        backgroundColor: Colors.blue,
         title: Text(
-          'CHAT',
-          style: TextStyle(color: Colors.white, fontSize: 25),
+          titleString == null ? '' : titleString,
+          style: TextStyle(
+              color: Colors.yellowAccent.shade400,
+              fontFamily: 'Grand',
+              letterSpacing: 1.15,
+              fontSize: 30),
         ),
         actions: <Widget>[
           FlatButton(
@@ -83,7 +90,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 FirebaseAuth.instance.signOut();
                 Navigator.pushReplacementNamed(context, '/');
               },
-              child: Icon(Icons.power_settings_new,color: Colors.white,)),
+              child: Icon(Icons.power_settings_new,color: Colors.red.shade200,)),
           SizedBox(
             width: 5,
           ),
@@ -92,68 +99,90 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: <Widget>[
-          Expanded(
-              child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      StreamBuilder<QuerySnapshot>(
-                        stream: Firestore.instance.collection('chatroom').document(widget.id).collection('messages').orderBy('time').snapshots(),
-                        builder: (context,snapshot){
-                          if(!snapshot.hasData){
-                            return Center(child: CircularProgressIndicator(),);
-                          }
-                          else {
-                            return ListView.builder(itemBuilder: (context,index){
-                              return MessageBubble(
-                                message: snapshot.data.documents[index].data['text'],
-                                sender: snapshot.data.documents[index].data['sender'],
-                                isSender: snapshot.data.documents[index].data['sender'] == email,
-                              );
-                            },itemCount: snapshot.data.documents.length,shrinkWrap: true,);
-                          }
-                        },
-                      )
-                    ],
-            ),
-          )),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: <Widget>[
-                Flexible(
-                  flex: 9,
-                  child: TextField(
-                    controller: messageController,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                      border: InputBorder.none,
-                      hintText: 'Send a message',
+          Center(
+              child: Image(
+                image: AssetImage('assets/bts1.jpg'),
+              )),
+          Column(
+            children: <Widget>[
+              Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        StreamBuilder<QuerySnapshot>(
+                          stream: Firestore.instance.collection('chatroom').document(widget.id).collection('messages').orderBy('time').snapshots(),
+                          builder: (context,snapshot){
+                            if(!snapshot.hasData){
+                              return Center(child: CircularProgressIndicator(),);
+                            }
+                            else {
+                              return ListView.builder(itemBuilder: (context,index){
+                                return MessageBubble(
+                                  message: snapshot.data.documents[index].data['text'],
+                                  sender: snapshot.data.documents[index].data['sender'],
+                                  isSender: snapshot.data.documents[index].data['sender'] == email,
+                                );
+                              },itemCount: snapshot.data.documents.length,shrinkWrap: true,);
+                            }
+                          },
+                        )
+                      ],
                     ),
-                  ),
+                  )),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: <Widget>[
+                    Flexible(
+                      flex: 85,
+                      child: TextField(
+                        controller: messageController,
+                        style: TextStyle(color: Colors.black,
+                            fontFamily: 'Grand',letterSpacing: 1.15),
+                        decoration: InputDecoration(
+
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6.0),
+                          ),
+                          hintText: 'Send a message',
+                          hintStyle: TextStyle(fontFamily: 'Grand',letterSpacing: 1.5,color: Colors.black),
+                          disabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6.0),
+                          ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(6.0),
+                              borderSide: BorderSide(color: Colors.yellowAccent.shade400)
+                            )
+                        ),
+                      ),
+                    ),
+                    Flexible(
+                      flex: 10,
+                      child: IconButton(
+                          color: messageController.text.isEmpty
+                              ? Colors.grey
+                              : Colors.blue,
+                          icon: Icon(Icons.send),
+                          onPressed: messageController.text.isEmpty
+                              ? () {}
+                              : () {
+                            sendMessage();
+                            FocusScope.of(context).requestFocus(FocusNode());
+                          }
+                      ),
+                    ),
+                  ],
                 ),
-                Flexible(
-                  flex: 1,
-                  child: IconButton(
-                    color: messageController.text.isEmpty
-                        ? Colors.grey
-                        : Colors.blue,
-                    icon: Icon(Icons.send),
-                      onPressed: messageController.text.isEmpty
-                          ? () {}
-                          : () {
-                        sendMessage();
-                      }
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
-      ),
+      )
     );
   }
 
@@ -184,13 +213,13 @@ class MessageBubble extends StatelessWidget {
         children: <Widget>[
           Text(
             sender,
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: Colors.white,fontFamily: 'Grand'),
           ),
           Container(
             margin: const EdgeInsets.all(3.0),
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
-              color: isSender ? Colors.blueAccent.shade100 : Colors.purple,
+              color: isSender ? Colors.yellowAccent.shade400 : Colors.white,
               borderRadius: isSender
                   ? BorderRadius.only(
                       topRight: Radius.circular(5.0),
@@ -207,7 +236,7 @@ class MessageBubble extends StatelessWidget {
               padding: EdgeInsets.only(right: 48.0),
               child: Text(
                 message,
-                style: TextStyle(fontSize: 20, color: Colors.white),
+                style: TextStyle(fontSize: 20, color: Colors.black,fontFamily: 'Grand'),
               ),
             ),
           ),

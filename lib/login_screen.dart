@@ -14,113 +14,151 @@ class _LoginScreenState extends State<LoginScreen> {
   bool wrongCredentials = false;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-
-      body: ModalProgressHUD(
-        inAsyncCall: loading,
-        progressIndicator: CircularProgressIndicator(),
-        child: Padding(
-          padding: const EdgeInsets.all(18.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Flexible(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: <Widget>[
-                    Hero(
-                      tag: 'LogoImage',
-                      child: Image(
-                          image: NetworkImage(
-                              'https://mclarencollege.in/images/icon.png'),
-                          fit: BoxFit.contain),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Text(
-                      'Login',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: 36,
-                          color: Color(0xFF4790F1),
-                          fontFamily: 'Poppins'),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Container(
-                alignment: Alignment.center,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    TextField(
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      keyboardType: TextInputType.emailAddress,
-                      onChanged: (newValue){
-                        email = newValue;
-                      },
-                      decoration: InputDecoration(
-                          hintText: 'elon@musk.com',
-                          icon: Icon(Icons.email),
-                          border: OutlineInputBorder()),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    TextField(
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      obscureText: true,
-                      onChanged: (newValue){
-                        password = newValue;
-                      },
-                      decoration: InputDecoration(
-                          icon: Icon(Icons.lock),
-                          hintText: 'spacexRocks',
-                          border: OutlineInputBorder()),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    RaisedButton(
-                      padding: EdgeInsets.all(16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12.0))),
-                      child: Text(
-                        'Login',
-                        style: TextStyle(color: Colors.white, fontSize: 21),
+    return WillPopScope(
+      child: Scaffold(
+          resizeToAvoidBottomPadding: false,
+          backgroundColor: Color(0xFF202020),
+        body: GestureDetector(
+          onTap: (){
+            FocusScope.of(context).requestFocus(new FocusNode());
+          },
+          child: ModalProgressHUD(
+            inAsyncCall: loading,
+            progressIndicator: CircularProgressIndicator(),
+            child: Stack(
+              children: <Widget>[
+                Center(
+                    child: Image(
+                      image: AssetImage('assets/bts1.jpg'),
+                    )),
+                Padding(
+                  padding: const EdgeInsets.all(18.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Flexible(
+                        child: Text(
+                          'KPOP United',
+                          style: TextStyle(
+                              color: Colors.yellowAccent.shade400,
+                              fontFamily: 'Grand',
+                              letterSpacing: 2,
+                              fontSize: 40),
+                        ),
                       ),
-                      color: Colors.blue,
-                      onPressed: () async{
-                        setState(() {
-                          loading = true;
-                        });
-                        try {
-                          AuthResult result = await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
-                          //print(result.user);
-                          Navigator.pushNamed(context, '/chatroom');
-                        } on Exception catch (e) {
-                          wrongCredentials = true;
-                          loading = false;
-                          setState(() {
+                      SizedBox(
+                        height: 20,
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          TextField(
+                            style: TextStyle(color: Colors.yellowAccent.shade400,
+                                fontFamily: 'Grand'),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            keyboardType: TextInputType.emailAddress,
+                            onChanged: (newValue) {
+                              email = newValue;
+                            },
+                            decoration: InputDecoration(
+                              hintStyle: TextStyle(
+                                letterSpacing: 1.5,
+                                fontFamily: 'Grand',),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.yellowAccent.shade400,
+                                  width: 0.5,
+                                ),
+                                borderRadius: BorderRadius.circular(15.0),
 
-                          });
-                          // TODO
-                        }
-                      },
-                    ),
-                    SizedBox(height: 5,),
-                    Center(child: Text(!wrongCredentials?'':'Please check your email and password')),
-                  ],
+                              ),
+                              hintText: 'enter your email',
+                              icon: Icon(Icons.email,color: Colors.yellowAccent.shade400,),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15.0),
+                                  borderSide: BorderSide(
+                                      width: 0.5,
+                                      style: BorderStyle.solid
+                                  )
+                              ),),
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          TextField(
+                            style: TextStyle(color: Colors.yellowAccent.shade400,
+                                fontFamily: 'Grand'),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            obscureText: true,
+                            onChanged: (newValue) {
+                              password = newValue;
+                            },
+                            decoration: InputDecoration(
+                              icon: Icon(Icons.lock,color: Colors.yellowAccent.shade400,),
+                              hintText: 'enter your password',
+                              hintStyle: TextStyle(
+                                letterSpacing: 1.5,
+                                fontFamily: 'Grand',),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.yellowAccent.shade400,
+                                  width: 0.5,
+                                ),
+                                borderRadius: BorderRadius.circular(15.0),
+
+                              ),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15.0),
+                                  borderSide: BorderSide(
+                                      width: 0.5,
+                                      style: BorderStyle.solid
+                                  )
+                              ),),
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          RaisedButton(
+                            padding: EdgeInsets.all(16),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(12.0))),
+                            child: Text(
+                              'Login',
+                              style: TextStyle(color: Colors.black,fontFamily: 'Grand',letterSpacing: 1.15, fontSize: 24),
+                            ),
+                            color: Colors.yellowAccent.shade400,
+                            onPressed: () async{
+                              setState(() {
+                                loading = true;
+                              });
+                              try {
+                                AuthResult result = await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
+                                //print(result.user);
+                                Navigator.pushNamed(context, '/chatroom');
+                              } on Exception catch (e) {
+                                wrongCredentials = true;
+                                loading = false;
+                                setState(() {
+
+                                });
+                                // TODO
+                              }
+                            },
+                          ),
+                          SizedBox(height: 5,),
+                          Center(child: Text(!wrongCredentials?'':'Please check your email and password',style: TextStyle(
+                              color: Colors.yellowAccent.shade400,fontFamily: 'Grand',letterSpacing: 1.15, fontSize: 20
+                          ),)),
+                        ],
+                      )
+                    ],
+                  ),
                 ),
-              )
-            ],
+              ],
+            ),
           ),
         ),
       ),
